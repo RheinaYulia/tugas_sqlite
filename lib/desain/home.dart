@@ -22,6 +22,9 @@ class _Home extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
+    final ButtonStyle style = ElevatedButton.styleFrom(
+      primary: Colors.blueGrey,
+    );
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blueGrey[500],
@@ -37,6 +40,7 @@ class _Home extends State<Home> {
             width: double.infinity,
             child: ElevatedButton(
               child: Text("Tambah Item"),
+              style: style,
               onPressed: () async {
                 _openFormCreate();
               },
