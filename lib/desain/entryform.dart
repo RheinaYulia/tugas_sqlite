@@ -38,8 +38,12 @@ class _EntryForm extends State<EntryForm> {
 
   @override
   Widget build(BuildContext context) {
+    final ButtonStyle style = ElevatedButton.styleFrom(
+      primary: Colors.blueGrey,
+    );
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.blueGrey[500],
         title: item == null ? Text('Tambah') : Text('Ubah'),
       ),
       body: ListView(
@@ -108,6 +112,7 @@ class _EntryForm extends State<EntryForm> {
                           textScaleFactor: 1.5,
                           style: TextStyle(color: Colors.white),
                         ),
+                  style: style,
                   onPressed: () {
                     upsert();
                   },
@@ -122,6 +127,7 @@ class _EntryForm extends State<EntryForm> {
                         'Cancel',
                         textScaleFactor: 1.5,
                       ),
+                      style: style,
                       onPressed: () {
                         Navigator.pop(context);
                       }))
