@@ -1,164 +1,176 @@
 import 'package:flutter/material.dart';
-import 'package:tugas_sqlite/database/dbhelper.dart';
+
 import 'package:tugas_sqlite/item/item.dart';
 
 class EntryForm extends StatefulWidget {
-  final Item? item;
-
-  EntryForm({this.item});
-
-  @override
-  _EntryForm createState() => _EntryForm(this.item);
-}
-
-class _EntryForm extends State<EntryForm> {
   Item? item;
 
-  _EntryForm(this.item);
-  DbHelper db = DbHelper();
-
-  TextEditingController? kode;
-  TextEditingController? name;
-  TextEditingController? price;
-  TextEditingController? stok;
+  EntryForm(this.item);
 
   @override
-  void initState() {
-    kode = TextEditingController(
-        text: widget.item == null ? '' : widget.item!.kode);
-    name = TextEditingController(
-        text: widget.item == null ? '' : widget.item!.name);
-    price = TextEditingController(
-        text: widget.item == null ? '' : widget.item!.price.toString());
-    stok = TextEditingController(
-        text: widget.item == null ? '' : widget.item!.stok.toString());
+  EntryFormState createState() => EntryFormState(this.item);
+}
 
-    super.initState();
-  }
+//class controller
+class EntryFormState extends State<EntryForm> {
+  Item? item;
+  EntryFormState(this.item);
+
+  TextEditingController kodeController = TextEditingController();
+  TextEditingController nameController = TextEditingController();
+  TextEditingController priceController = TextEditingController();
+  TextEditingController stokController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     final ButtonStyle style = ElevatedButton.styleFrom(
-      primary: Colors.blueGrey,
+      primary: Colors.blueGrey[500],
     );
+
+    //kondisi
+    if (item != null) {
+      kodeController.text = item!.kode;
+      nameController.text = item!.name;
+      priceController.text = item!.price.toString();
+      stokController.text = item!.stok.toString();
+    }
+    //rubah
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.blueGrey[500],
-        title: item == null ? Text('Tambah') : Text('Ubah'),
-      ),
-      body: ListView(
-        padding: EdgeInsets.only(top: 15.0, left: 10.0, right: 10.0),
-        children: [
-          Padding(
-            padding: EdgeInsets.only(top: 20.0, bottom: 10.0),
-            child: TextField(
-              controller: kode,
-              keyboardType: TextInputType.text,
-              decoration: InputDecoration(
-                  labelText: 'Kode',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(5.0),
-                  )),
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
-            child: TextField(
-              controller: name,
-              keyboardType: TextInputType.text,
-              decoration: InputDecoration(
-                  labelText: 'Name',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(5.0),
-                  )),
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
-            child: TextField(
-              controller: price,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                  labelText: 'Price',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(5.0),
-                  )),
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
-            child: TextField(
-              controller: stok,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                  labelText: 'Stok',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(5.0),
-                  )),
-            ),
-          ),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  child: (widget.item == null)
-                      ? Text(
-                          'Add',
-                          textScaleFactor: 1.5,
-                          style: TextStyle(color: Colors.white),
-                        )
-                      : Text(
-                          'Update',
-                          textScaleFactor: 1.5,
-                          style: TextStyle(color: Colors.white),
-                        ),
-                  style: style,
-                  onPressed: () {
-                    upsert();
+        appBar: AppBar(
+          title: item == null ? Text('Tambah') : Text('Ubah'),
+          leading: Icon(Icons.keyboard_arrow_left),
+        ),
+        body: Padding(
+          padding: EdgeInsets.only(top: 15.0, left: 10.0, right: 10.0),
+          child: ListView(
+            children: <Widget>[
+              // kode
+              Padding(
+                padding: EdgeInsets.only(top: 20.0, bottom: 20.0),
+                child: TextField(
+                  controller: kodeController,
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(
+                    labelText: 'Kode Barang',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    //
                   },
                 ),
               ),
-              Container(
-                width: 5.0,
+              // nama
+              Padding(
+                padding: EdgeInsets.only(top: 20.0, bottom: 20.0),
+                child: TextField(
+                  controller: nameController,
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(
+                    labelText: 'Nama Barang',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    //
+                  },
+                ),
               ),
-              Expanded(
-                  child: ElevatedButton(
-                      child: Text(
-                        'Cancel',
-                        textScaleFactor: 1.5,
+
+              // harga
+              Padding(
+                padding: EdgeInsets.only(top: 20.0, bottom: 20.0),
+                child: TextField(
+                  controller: priceController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: 'Harga',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    //
+                  },
+                ),
+              ),
+
+              // stok
+              Padding(
+                padding: EdgeInsets.only(top: 20.0, bottom: 20.0),
+                child: TextField(
+                  controller: stokController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: 'Stok',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    //
+                  },
+                ),
+              ),
+              // tombol button
+              Padding(
+                padding: EdgeInsets.only(top: 20.0, bottom: 20.0),
+                child: Row(
+                  children: <Widget>[
+                    // tombol simpan
+                    Expanded(
+                      child: ElevatedButton(
+                        child: Text(
+                          'Save',
+                          textScaleFactor: 1.5,
+                        ),
+                        onPressed: () {
+                          if (item == null) {
+                            // tambah data
+                            item = Item(
+                              kodeController.text,
+                              nameController.text,
+                              int.parse(priceController.text),
+                              int.parse(
+                                stokController.text,
+                              ),
+                            );
+                          } else {
+                            // ubah data
+                            item?.kode = kodeController.text;
+                            item?.name = nameController.text;
+                            item?.price = int.parse(priceController.text);
+                            item?.stok = int.parse(stokController.text);
+                          }
+                          // kembali ke layar sebelumnya dengan membawa objek item
+                          Navigator.pop(context, item);
+                        },
+                        style: style,
                       ),
-                      style: style,
-                      onPressed: () {
-                        Navigator.pop(context);
-                      }))
+                    ),
+                    Container(
+                      width: 5.0,
+                    ),
+                    // tombol batal
+                    Expanded(
+                      child: ElevatedButton(
+                        style: style,
+                        child: Text(
+                          'Cancel',
+                          textScaleFactor: 1.5,
+                        ),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> upsert() async {
-    if (widget.item != null) {
-      //insert
-
-      await db.update(Item.fromMap({
-        'id': widget.item!.id,
-        'kode': kode!.text,
-        'name': name!.text,
-        'price': int.parse(price!.text),
-        'stok': int.parse(stok!.text),
-      }));
-      Navigator.pop(context, 'update');
-    } else {
-      //update
-      await db.insert(Item(
-        name: name!.text,
-        kode: kode!.text,
-        price: int.parse(price!.text),
-        stok: int.parse(stok!.text),
-      ));
-      Navigator.pop(context, 'save');
-    }
+        ));
   }
 }
