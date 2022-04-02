@@ -1,33 +1,31 @@
-import 'package:flutter/material.dart';
 import 'package:tugas_sqlite/database/dbhelper.dart';
 import 'package:tugas_sqlite/desain/entryform.dart';
 import 'package:tugas_sqlite/item/item.dart';
+import 'package:flutter/material.dart';
+import 'package:sqflite/sqflite.dart';
+
+import 'dart:async';
 
 class Home extends StatefulWidget {
-  const Home({Key? key}) : super(key: key);
-
   @override
-  _Home createState() => _Home();
+  HomeState createState() => HomeState();
 }
 
-class _Home extends State<Home> {
-  List<Item> itemlist = [];
-  DbHelper db = DbHelper();
+class HomeState extends State<Home> {
+  DbHelper dbHelper = DbHelper();
+  int count = 0;
 
-  @override
-  void initState() {
-    _selectAll();
-    super.initState();
-  }
-
+  List<Item>? itemList;
   @override
   Widget build(BuildContext context) {
     final ButtonStyle style = ElevatedButton.styleFrom(
-      primary: Colors.blueGrey,
+      primary: Colors.grey[350],
     );
+    if (itemList == null) {
+      itemList = <Item>[];
+    }
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blueGrey[500],
         title: Text('Daftar Item'),
       ),
       body: Column(children: [
@@ -39,85 +37,67 @@ class _Home extends State<Home> {
           child: SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              child: Text("Tambah Item"),
-              style: style,
+              child: Text(
+                "Tambah Item",
+                style: TextStyle(color: Colors.black87),
+              ),
               onPressed: () async {
-                _openFormCreate();
+                var item = await navigateToEntryForm(context, null);
+                if (item != null) {
+                  //TODO 2 Panggil Fungsi untuk Insert ke DB
+                  int result = await dbHelper.insert(item);
+                  if (result > 0) {
+                    updateListView();
+                  }
+                }
               },
+              style: style,
             ),
           ),
         ),
       ]),
-
-      // floatingActionButton: Container(
-      //   height: 100,
-      //   color: Colors.pink,
-      //   child: FittedBox(
-      //     child: FlatButton(
-      //         shape: RoundedRectangleBorder(), onPressed: () {}),
-      //   ),
-      // ),
-
-      // floatingActionButton: FloatingActionButton.extended(
-
-      //   icon: Icon(Icons.add),
-      //   label: Text('Refresh'),
-      //   backgroundColor: Colors.red,
-      //   shape: RoundedRectangleBorder(),
-      //   onPressed: () {
-      //     _openFormCreate();
-      //   },
-      // ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      // floatingActionButton: FloatingActionButton(
-      //   child: Icon(Icons.add),
-      //   shape: RoundedRectangleBorder(),
-      //   backgroundColor: Colors.red,
-      //   onPressed: () {
-      //     //add
-      //     _openFormCreate();
-      //   },
-      // ),
     );
   }
 
+  Future<Item?> navigateToEntryForm(BuildContext context, Item? item) async {
+    var result = await Navigator.push(context,
+        MaterialPageRoute(builder: (BuildContext context) {
+      return EntryForm(item);
+    }));
+    return result;
+  }
+
   ListView createListView() {
+    TextStyle? textStyle = Theme.of(context).textTheme.headline5;
     return ListView.builder(
-      itemCount: itemlist.length,
-      itemBuilder: (context, index) {
-        Item item = itemlist[index];
+      itemCount: count,
+      itemBuilder: (BuildContext context, int index) {
+        Item item = itemList![index];
         return Card(
           color: Colors.white,
           elevation: 2.0,
           child: ListTile(
-            onTap: () {
-              //edit
-              _openFormEdit(item);
-            },
             leading: CircleAvatar(
               backgroundColor: Colors.red,
               child: Icon(Icons.ad_units),
             ),
-            contentPadding: EdgeInsets.all(16),
             title: Text(
-              '${item.name}',
-              style: TextStyle(fontSize: 22),
+              this.itemList![index].name,
+              style: textStyle,
             ),
-            subtitle: Text('${item.price}'),
+            subtitle: Text(this.itemList![index].price.toString()),
             trailing: FittedBox(
-              fit: BoxFit.fill,
               child: Row(
                 children: [
-                  // button edit
                   IconButton(
-                      onPressed: () {
-                        _openFormEdit(item);
+                      onPressed: () async {
+                        var item = await navigateToEntryForm(
+                            context, this.itemList![index]);
                       },
                       icon: Icon(Icons.edit)),
-                  // button hapus
                   IconButton(
                     icon: Icon(Icons.delete),
-                    onPressed: () {
+                    onPressed: () async {
                       AlertDialog hapus = AlertDialog(
                         title: Text('Information'),
                         content: Container(
@@ -125,19 +105,22 @@ class _Home extends State<Home> {
                           child: Column(
                             children: [
                               Text(
-                                  'Apakah anda yakin ingin menghapus data ${item.name}'),
+                                  'Apakah anda yakin ingin menghapus data ${this.itemList![index].name}'),
                             ],
                           ),
                         ),
                         actions: [
                           TextButton(
-                            child: Text('Ya'),
-                            onPressed: () {
-                              //delete
-                              _delete(item, index);
-                              Navigator.pop(context);
-                            },
-                          ),
+                              child: Text('Ya'),
+                              onPressed: () async {
+                                //delete
+                                int result = await dbHelper
+                                    .delete(this.itemList![index].id);
+                                if (result > 0) {
+                                  updateListView();
+                                }
+                                Navigator.pop(context);
+                              }),
                           TextButton(
                             child: Text('Tidak'),
                             onPressed: () {
@@ -152,43 +135,30 @@ class _Home extends State<Home> {
                 ],
               ),
             ),
+            onTap: () async {
+              var item =
+                  await navigateToEntryForm(context, this.itemList![index]);
+              //TODO 4 Panggil Fungsi untuk Edit data
+            },
           ),
         );
       },
     );
   }
 
-  Future<void> _selectAll() async {
-    var list = await db.selectAll();
-    setState(() {
-      itemlist.clear();
-      list!.forEach((item) {
-        itemlist.add(Item.fromMap(item));
+  //update List item
+  void updateListView() {
+    final Future<Database> dbFuture = dbHelper.initDb();
+    dbFuture.then((database) {
+      //TODO 1 Select data dari DB
+
+      Future<List<Item>> itemListFuture = dbHelper.getItemList();
+      itemListFuture.then((itemList) {
+        setState(() {
+          this.itemList = itemList;
+          this.count = itemList.length;
+        });
       });
     });
-  }
-
-  Future<void> _delete(Item item, int position) async {
-    await db.delete(item.id!);
-
-    setState(() {
-      itemlist.removeAt(position);
-    });
-  }
-
-  Future<void> _openFormCreate() async {
-    var result = await Navigator.push(
-        context, MaterialPageRoute(builder: (context) => EntryForm()));
-    if (result == 'save') {
-      await _selectAll();
-    }
-  }
-
-  Future<void> _openFormEdit(Item item) async {
-    var result = await Navigator.push(context,
-        MaterialPageRoute(builder: (context) => EntryForm(item: item)));
-    if (result == 'update') {
-      await _selectAll();
-    }
   }
 }
